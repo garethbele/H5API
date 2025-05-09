@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import tensorflow as tf
 import numpy as np
@@ -7,8 +7,9 @@ import base64
 import io
 from PIL import Image
 
-app = Flask(__name__, static_folder='static')
-CORS(app)  # Enable CORS for all routes
+app = Flask(__name__)
+# Enable CORS for all origins to allow requests from any frontend
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Global variables
 model = None
@@ -44,10 +45,16 @@ def preprocess_image(image_data):
     
     return img_array
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
-    """Serve the static HTML file."""
-    return send_from_directory(app.static_folder, 'index.html')
+    """Simple health check endpoint."""
+    return jsonify({
+        "status": "healthy",
+        "message": "Chest X-ray classifier API is running",
+        "endpoints": {
+            "/predict": "POST - Submit an image for classification"
+        }
+    })
 
 @app.route('/predict', methods=['POST'])
 def predict():
